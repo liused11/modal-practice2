@@ -37,3 +37,9 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+ion-modal.modal-fullscreen::part(content) {
+	--height: 90%;
+	--width: 90%;
+	// border-radius: 8px;
+}
