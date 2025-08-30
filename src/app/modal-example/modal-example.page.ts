@@ -1,20 +1,52 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonInput,
+  IonItem,
+  IonModal,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular/standalone';
+import { OverlayEventDetail } from '@ionic/core/components';
 
 @Component({
-  selector: 'app-modal-example',
-  templateUrl: './modal-example.page.html',
-  styleUrls: ['./modal-example.page.scss'],
-  standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule]
+  selector: 'app-example',
+  templateUrl: 'example.component.html',
+  styleUrls: ['example.component.css'],
+  imports: [
+    FormsModule,
+    IonButton,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonInput,
+    IonItem,
+    IonModal,
+    IonTitle,
+    IonToolbar,
+  ],
 })
-export class ModalExamplePage implements OnInit {
+export class ExampleComponent {
+  @ViewChild(IonModal) modal!: IonModal;
 
-  constructor() { }
+  message = 'This modal example uses triggers to automatically open a modal when the button is clicked.';
+  name!: string;
 
-  ngOnInit() {
+  cancel() {
+    this.modal.dismiss(null, 'cancel');
   }
 
+  confirm() {
+    this.modal.dismiss(this.name, 'confirm');
+  }
+
+  onWillDismiss(event: CustomEvent<OverlayEventDetail>) {
+    if (event.detail.role === 'confirm') {
+      this.message = `Hello, ${event.detail.data}!`;
+    }
+  }
 }
