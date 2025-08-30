@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ModalExamplePage } from './modal-example.page';
+import { ModalExamplePage } from 'modal-example.page';
 
 describe('ModalExamplePage', () => {
   let component: ModalExamplePage;

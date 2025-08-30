@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: 'modal-example',
-    loadComponent: () => import('./modal-example/modal-example.page').then((m) => m.HomePage),
+    loadComponent: () => import('./modal-example/modal-example.page').then((m) => m.ExampleComponent),
   },
   {
     path: '',
