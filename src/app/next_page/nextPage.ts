@@ -1,22 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { IonicModule, ModalController } from '@ionic/angular';
 // import { MainPage } from '../main/main.page';
-import { nextPage } from '../next_page/nextPage';
+import { Page3 } from '../page3/pageThree';
 @Component({
   selector: 'app-modal',
-  templateUrl: './modal.component.html',
-  styleUrls: ['./modal.component.scss'],
+  templateUrl: './nextPage.html',
+  styleUrls: ['./nextPage.scss'],
   imports: [IonicModule],
   standalone: true,
 })
-export class ModalComponent implements OnInit {
+export class nextPage implements OnInit {
   constructor(private modalController: ModalController) {}
 
   ngOnInit() {}
 
-  async openModalInformation(): Promise<void> {
+  async GotoPage3(): Promise<void> {
     const modal = await this.modalController.create({
-      component: nextPage,
+      component: Page3,
       cssClass: 'modal-fullscreen',
       showBackdrop: false,
       // componentProps: { row },
