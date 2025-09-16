@@ -1,4 +1,4 @@
-@use "tailwindcss";
+@import "tailwindcss";
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
@@ -42,4 +42,17 @@ ion-modal.modal-fullscreen::part(content) {
 	--height: 90%;
 	--width: 90%;
 	// border-radius: 8px;
+}
+
+ion-modal {
+	&.custom-modal-438 {
+		--width: 438px;
+		height: auto;
+		border-radius: 16px;
+	}
+
+	&.modal-default.show-modal~ion-modal.modal-default {
+		--backdrop-opacity: revert-layer;
+		--box-shadow: none;
+	}
 }
