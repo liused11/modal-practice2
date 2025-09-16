@@ -6,8 +6,9 @@ export declare class ParkingResolver {
     private readonly parkingService;
     constructor(parkingService: ParkingService);
     createParking(createParkingInput: CreateParkingInput): Promise<ParkingLot>;
-    findAll(): Promise<ParkingLot[]>;
-    findOne(id: number): Promise<ParkingLot>;
     updateParking(updateParkingInput: UpdateParkingInput): Promise<ParkingLot>;
     removeParking(id: number): Promise<ParkingLot>;
+    findAll(): Promise<ParkingLot[]>;
+    findOne(id: number): Promise<ParkingLot>;
+    parkingChanged(): AsyncIterator<unknown, any, any>;
 }

@@ -12,10 +12,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ParkingService = void 0;
 const common_1 = require("@nestjs/common");
 const supabase_js_1 = require("@supabase/supabase-js");
+const rxjs_1 = require("rxjs");
 let ParkingService = class ParkingService {
     supabaseClient;
+    parkingSubscription = null;
+    parkingChanges$ = new rxjs_1.Subject();
     constructor() {
         this.supabaseClient = (0, supabase_js_1.createClient)(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+    }
+    getParkingChanges() {
+        return this.parkingChanges$.asObservable();
     }
     async create(createParkingInput) {
         const { data, error } = await this.supabaseClient
@@ -35,16 +41,7 @@ let ParkingService = class ParkingService {
             .single();
         if (error)
             throw new Error(error.message);
-        return {
-            id: data.id,
-            name: data.name,
-            location: data.location,
-            totalSpots: data.total_spots,
-            availableSpots: data.available_spots,
-            levels: data.levels,
-            spots: data.spots,
-            rules: data.rules,
-        };
+        return this.mapParking(data);
     }
     async findAll() {
         const { data, error } = await this.supabaseClient
@@ -52,16 +49,7 @@ let ParkingService = class ParkingService {
             .select('*');
         if (error)
             throw new Error(error.message);
-        return data.map((lot) => ({
-            id: lot.id,
-            name: lot.name,
-            location: lot.location,
-            totalSpots: lot.total_spots,
-            availableSpots: lot.available_spots,
-            levels: lot.levels,
-            spots: lot.spots,
-            rules: lot.rules,
-        }));
+        return data.map(this.mapParking);
     }
     async findOne(id) {
         const { data, error } = await this.supabaseClient
@@ -71,16 +59,7 @@ let ParkingService = class ParkingService {
             .single();
         if (error)
             throw new Error(error.message);
-        return {
-            id: data.id,
-            name: data.name,
-            location: data.location,
-            totalSpots: data.total_spots,
-            availableSpots: data.available_spots,
-            levels: data.levels,
-            spots: data.spots,
-            rules: data.rules,
-        };
+        return this.mapParking(data);
     }
     async update(id, updateParkingInput) {
         const { data, error } = await this.supabaseClient
@@ -99,16 +78,7 @@ let ParkingService = class ParkingService {
             .single();
         if (error)
             throw new Error(error.message);
-        return {
-            id: data.id,
-            name: data.name,
-            location: data.location,
-            totalSpots: data.total_spots,
-            availableSpots: data.available_spots,
-            levels: data.levels,
-            spots: data.spots,
-            rules: data.rules,
-        };
+        return this.mapParking(data);
     }
     async remove(id) {
         const { data: parking, error: fetchError } = await this.supabaseClient
@@ -126,7 +96,43 @@ let ParkingService = class ParkingService {
             .eq('id', id);
         if (deleteError)
             throw new Error(deleteError.message);
-        return parking;
+        return this.mapParking(parking);
+    }
+    mapParking(data) {
+        return {
+            id: data.id,
+            name: data.name,
+            location: data.location,
+            totalSpots: data.total_spots,
+            availableSpots: data.available_spots,
+            levels: data.levels,
+            spots: data.spots,
+            rules: data.rules,
+        };
+    }
+    onModuleInit() {
+        this.parkingSubscription = this.supabaseClient
+            .channel('parking_lots_changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'parking_lots' }, (payload) => {
+            let data;
+            if (payload.eventType === 'DELETE') {
+                data = payload.old;
+            }
+            else {
+                data = payload.new;
+            }
+            if (data) {
+                const parking = this.mapParking(data);
+                this.parkingChanges$.next(parking);
+            }
+        })
+            .subscribe();
+    }
+    onModuleDestroy() {
+        if (this.parkingSubscription) {
+            this.supabaseClient.removeChannel(this.parkingSubscription);
+            this.parkingSubscription = null;
+        }
     }
 };
 exports.ParkingService = ParkingService;

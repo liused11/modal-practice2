@@ -27,6 +27,10 @@ exports.AppModule = AppModule = __decorate([
             graphql_1.GraphQLModule.forRoot({
                 driver: apollo_1.ApolloDriver,
                 autoSchemaFile: true,
+                subscriptions: {
+                    'graphql-ws': true,
+                    'subscriptions-transport-ws': true,
+                },
             })
         ],
         controllers: [app_controller_1.AppController],

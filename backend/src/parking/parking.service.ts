@@ -1,18 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ParkingLot } from './entities/parking.entity'
 import { CreateParkingInput } from './dto/create-parking.input';
 import { UpdateParkingInput } from './dto/update-parking.input';
+import { Subject, Observable } from 'rxjs';
 
 @Injectable()
-export class ParkingService {
+export class ParkingService implements OnModuleInit, OnModuleDestroy {
   private supabaseClient: SupabaseClient;
+  private parkingSubscription: ReturnType<typeof this.supabaseClient.channel> | null = null;
+  private parkingChanges$: Subject<ParkingLot> = new Subject();
 
   constructor() {
     this.supabaseClient = createClient(
       process.env.SUPABASE_URL as string,
       process.env.SUPABASE_KEY as string,
     );
+  }
+
+  // ทำให้ GraphQL resolver สามารถ subscribe ได้
+  getParkingChanges(): Observable<ParkingLot> {
+    return this.parkingChanges$.asObservable();
   }
   async create(createParkingInput: CreateParkingInput): Promise<ParkingLot> {
     const { data, error } = await this.supabaseClient
@@ -33,16 +41,7 @@ export class ParkingService {
 
     if (error) throw new Error(error.message);
 
-    return {
-      id: data.id,
-      name: data.name,
-      location: data.location,
-      totalSpots: data.total_spots,
-      availableSpots: data.available_spots,
-      levels: data.levels,
-      spots: data.spots,
-      rules: data.rules,
-    };
+    return this.mapParking(data);
   }
 
   // ✅ READ ALL
@@ -53,16 +52,7 @@ export class ParkingService {
 
     if (error) throw new Error(error.message);
 
-    return data.map((lot: any) => ({
-      id: lot.id,
-      name: lot.name,
-      location: lot.location,
-      totalSpots: lot.total_spots,
-      availableSpots: lot.available_spots,
-      levels: lot.levels,
-      spots: lot.spots,
-      rules: lot.rules,
-    }));
+    return data.map(this.mapParking);
   }
 
   async findOne(id: number): Promise<ParkingLot> {
@@ -74,16 +64,7 @@ export class ParkingService {
 
     if (error) throw new Error(error.message);
 
-    return {
-      id: data.id,
-      name: data.name,
-      location: data.location,
-      totalSpots: data.total_spots,
-      availableSpots: data.available_spots,
-      levels: data.levels,
-      spots: data.spots,
-      rules: data.rules,
-    };
+    return this.mapParking(data);
   }
 
   async update(id: number, updateParkingInput: UpdateParkingInput): Promise<ParkingLot> {
@@ -104,16 +85,7 @@ export class ParkingService {
 
     if (error) throw new Error(error.message);
 
-    return {
-      id: data.id,
-      name: data.name,
-      location: data.location,
-      totalSpots: data.total_spots,
-      availableSpots: data.available_spots,
-      levels: data.levels,
-      spots: data.spots,
-      rules: data.rules,
-    };
+    return this.mapParking(data);
   }
 
   // ✅ DELETE
@@ -134,6 +106,47 @@ export class ParkingService {
 
     if (deleteError) throw new Error(deleteError.message);
 
-    return parking as ParkingLot;
+    return this.mapParking(parking);
+  }
+
+  private mapParking(data: any): ParkingLot {
+    return {
+      id: data.id,
+      name: data.name,
+      location: data.location,
+      totalSpots: data.total_spots,
+      availableSpots: data.available_spots,
+      levels: data.levels,
+      spots: data.spots,
+      rules: data.rules,
+    };
+  }
+  onModuleInit() {
+    this.parkingSubscription = this.supabaseClient
+      .channel('parking_lots_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'parking_lots' },
+        (payload) => {
+          let data: any;
+          if (payload.eventType === 'DELETE') {
+            data = payload.old;
+          } else {
+            data = payload.new;
+          }
+          if (data) {
+            const parking = this.mapParking(data);
+            this.parkingChanges$.next(parking);
+          }
+        }
+      )
+      .subscribe();
+  }
+
+  onModuleDestroy() {
+    if (this.parkingSubscription) {
+      this.supabaseClient.removeChannel(this.parkingSubscription);
+      this.parkingSubscription = null;
+    }
   }
 }

@@ -16,6 +16,10 @@ import { ParkingModule } from './parking/parking.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
+      subscriptions: {
+        'graphql-ws': true,   // ✅ ใช้ graphql-ws protocol
+        'subscriptions-transport-ws': true, // ✅ เผื่อ client เก่า (Apollo Client v2)
+      },
       //playground: true,
       //sortSchema: true,
     })

@@ -18,13 +18,25 @@ const parking_service_1 = require("./parking.service");
 const parking_entity_1 = require("./entities/parking.entity");
 const create_parking_input_1 = require("./dto/create-parking.input");
 const update_parking_input_1 = require("./dto/update-parking.input");
+const graphql_subscriptions_1 = require("graphql-subscriptions");
+const pubSub = new graphql_subscriptions_1.PubSub();
 let ParkingResolver = class ParkingResolver {
     parkingService;
     constructor(parkingService) {
         this.parkingService = parkingService;
     }
-    createParking(createParkingInput) {
-        return this.parkingService.create(createParkingInput);
+    async createParking(createParkingInput) {
+        const parking = await this.parkingService.create(createParkingInput);
+        return parking;
+    }
+    async updateParking(updateParkingInput) {
+        const parking = await this.parkingService.update(updateParkingInput.id, updateParkingInput);
+        await pubSub.publish('parkingChanged', { parkingChanged: parking });
+        return parking;
+    }
+    async removeParking(id) {
+        const parking = await this.parkingService.remove(id);
+        return parking;
     }
     findAll() {
         return this.parkingService.findAll();
@@ -32,11 +44,8 @@ let ParkingResolver = class ParkingResolver {
     findOne(id) {
         return this.parkingService.findOne(id);
     }
-    updateParking(updateParkingInput) {
-        return this.parkingService.update(updateParkingInput.id, updateParkingInput);
-    }
-    removeParking(id) {
-        return this.parkingService.remove(id);
+    parkingChanged() {
+        return pubSub.asyncIterator('parkingChanged');
     }
 };
 exports.ParkingResolver = ParkingResolver;
@@ -45,8 +54,22 @@ __decorate([
     __param(0, (0, graphql_1.Args)('createParkingInput')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_parking_input_1.CreateParkingInput]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], ParkingResolver.prototype, "createParking", null);
+__decorate([
+    (0, graphql_1.Mutation)(() => parking_entity_1.ParkingLot),
+    __param(0, (0, graphql_1.Args)('updateParkingInput')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [update_parking_input_1.UpdateParkingInput]),
+    __metadata("design:returntype", Promise)
+], ParkingResolver.prototype, "updateParking", null);
+__decorate([
+    (0, graphql_1.Mutation)(() => parking_entity_1.ParkingLot),
+    __param(0, (0, graphql_1.Args)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], ParkingResolver.prototype, "removeParking", null);
 __decorate([
     (0, graphql_1.Query)(() => [parking_entity_1.ParkingLot], { name: 'parkings' }),
     __metadata("design:type", Function),
@@ -61,19 +84,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ParkingResolver.prototype, "findOne", null);
 __decorate([
-    (0, graphql_1.Mutation)(() => parking_entity_1.ParkingLot),
-    __param(0, (0, graphql_1.Args)('updateParkingInput')),
+    (0, graphql_1.Subscription)(() => parking_entity_1.ParkingLot, {
+        resolve: (payload) => payload.parkingChanged,
+    }),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [update_parking_input_1.UpdateParkingInput]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
-], ParkingResolver.prototype, "updateParking", null);
-__decorate([
-    (0, graphql_1.Mutation)(() => parking_entity_1.ParkingLot),
-    __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
-], ParkingResolver.prototype, "removeParking", null);
+], ParkingResolver.prototype, "parkingChanged", null);
 exports.ParkingResolver = ParkingResolver = __decorate([
     (0, graphql_1.Resolver)(() => parking_entity_1.ParkingLot),
     __metadata("design:paramtypes", [parking_service_1.ParkingService])
