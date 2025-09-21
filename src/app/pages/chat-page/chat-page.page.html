@@ -1,0 +1,29 @@
+<div class="chat-container">
+  <h2>Public Chat Room</h2>
+
+  <div class="message-area" #messageArea>
+    <div *ngFor="let msg of messages$ | async" class="message">
+      <span class="username">{{ msg.username }}:</span>
+      <span class="content">{{ msg.content }}</span>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <input
+      type="text"
+      class="username-input"
+      placeholder="Your Name"
+      [(ngModel)]="username"
+      (keydown.enter)="focusMessageInput()"
+    />
+    <input
+      #messageInput
+      type="text"
+      class="message-input"
+      placeholder="Type a message..."
+      [(ngModel)]="newMessage"
+      (keydown.enter)="sendMessage()"
+    />
+    <button (click)="sendMessage()">Send</button>
+  </div>
+</div>

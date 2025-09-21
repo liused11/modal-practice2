@@ -21,11 +21,13 @@ import { ModalService } from 'src/app/service/modal.service';
     CommonModule,
     FormsModule,
     IonButton,
-    IonCard
+    IonCard, RegisterComponent
   ]
 })
 export class ProjectPage implements OnInit {
-  constructor(private modalService: ModalService) { }
+  constructor(private modalService: ModalService,
+    private router: Router
+  ) { }
 
   ngOnInit() {
     // ให้ service จัดการ query param เอง
@@ -35,7 +37,9 @@ export class ProjectPage implements OnInit {
   openRegister() {
     this.modalService.openModal('register', true, { message: 'From HomePage' });
   }
-
+  goNextPage() {
+    this.router.navigate(['/chat-page']);
+  }
   openLogin() {
     this.modalService.openModal('login', true, { from: 'HomePage' });
   }

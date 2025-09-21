@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
-
+import { FormsModule } from '@angular/forms'; // <-- เพิ่มบรรทัดนี้
 import { RegisterComponent } from './pages/register/register.component';
 import { ModalService } from './service/modal.service';
 import { Register2Component } from './pages/register2/register2.component';
