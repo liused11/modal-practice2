@@ -1,3 +1,66 @@
-<p>
-  register works!
-</p>
+<!-- Chat Container -->
+<div class="fixed bottom-5 right-5 w-80 bg-white/90 backdrop-blur-sm shadow-2xl rounded-2xl overflow-hidden border border-white/20 flex flex-col">
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 flex items-center">
+    <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-2"></div>
+    <h2 class="text-sm font-semibold text-white flex-1">Public Chat Room</h2>
+    <span class="text-blue-100 text-xs">Online</span>
+  </div>
+
+  <!-- Messages Area -->
+  <div class="h-80 overflow-y-auto p-3 space-y-3 bg-gray-50 text-sm" #messageArea>
+    <div *ngFor="let msg of messages$ | async" class="flex items-start space-x-2">
+      <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+        {{ msg.username.charAt(0).toUpperCase() }}
+      </div>
+      <div class="flex-1">
+        <div class="bg-white rounded-2xl px-3 py-2 shadow-sm border border-gray-200">
+          <div class="text-xs text-blue-600 font-medium mb-1">{{ msg.username }}</div>
+          <div class="text-gray-800">{{ msg.content }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="p-3 bg-white border-t border-gray-200">
+    <div class="flex items-center space-x-2">
+      <!-- Username -->
+      <input
+        type="text"
+        class="w-20 px-2 py-1 text-xs bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-blue-500"
+        placeholder="Name"
+        [(ngModel)]="username"
+        (keydown.enter)="focusMessageInput()"
+      />
+
+      <!-- Message Input -->
+      <div class="flex-1 relative">
+        <input
+          #messageInput
+          type="text"
+          class="w-full px-3 py-2 bg-white border border-gray-200 rounded-full text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 pr-10"
+          placeholder="Type your message..."
+          [(ngModel)]="newMessage"
+          (keydown.enter)="sendMessage()"
+        />
+        <!-- Send Button -->
+        <button
+          class="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full flex items-center justify-center hover:scale-105 transition"
+          (click)="sendMessage()"
+        >
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex items-center justify-center mt-2 space-x-2 text-xs">
+      <button class="px-2 py-1 bg-gray-100 rounded-full hover:bg-gray-200" (click)="quickMessage('👋')">👋 Wave</button>
+      <button class="px-2 py-1 bg-gray-100 rounded-full hover:bg-gray-200" (click)="quickMessage('👍')">👍 Like</button>
+      <button class="px-2 py-1 bg-gray-100 rounded-full hover:bg-gray-200" (click)="quickMessage('😊')">😊 Smile</button>
+    </div>
+  </div>
+</div>

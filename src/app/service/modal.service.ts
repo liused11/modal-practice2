@@ -13,7 +13,7 @@ export class ModalService {
     private modalController: ModalController,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) { }
 
   /**
    * ลงทะเบียน modal component
@@ -40,7 +40,8 @@ export class ModalService {
   async openModal(
     modalName: string,
     changeURL: boolean = true,
-    props: any = {}
+    props: any = {},
+    cssClass: string | string[] = 'default-modal'
   ) {
     if (this.modalOpen) return;
     const component = this.registry.get(modalName);
@@ -60,7 +61,8 @@ export class ModalService {
 
     const modal = await this.modalController.create({
       component,
-      componentProps: props
+      componentProps: props,
+      cssClass // 👈 กำหนด class ได้ตรงนี้
     });
 
     await modal.present();
@@ -74,4 +76,5 @@ export class ModalService {
 
     this.modalOpen = false;
   }
+
 }

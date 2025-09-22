@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonButton, IonCard } from '@ionic/angular/standalone';
 import { Router, ActivatedRoute } from '@angular/router';
 
-import { RegisterComponent } from '../register/register.component';
+
 import { ModalService } from 'src/app/service/modal.service';
 
 
@@ -15,13 +15,13 @@ import { ModalService } from 'src/app/service/modal.service';
   standalone: true,
   imports: [
     IonContent,
-    IonHeader,
+    
     IonTitle,
     IonToolbar,
     CommonModule,
     FormsModule,
     IonButton,
-    IonCard, RegisterComponent
+    IonCard, 
   ]
 })
 export class ProjectPage implements OnInit {
@@ -35,7 +35,7 @@ export class ProjectPage implements OnInit {
   }
 
   openRegister() {
-    this.modalService.openModal('register', true, { message: 'From HomePage' });
+    this.modalService.openModal('register', true, { message: 'From HomePage' } , 'chat-modal');
   }
   goNextPage() {
     this.router.navigate(['/chat-page']);
