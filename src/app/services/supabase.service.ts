@@ -1,8 +1,16 @@
 // src/app/services/supabase.service.ts
-import { Injectable } from '@angular/core';
+
+import { Injectable, OnDestroy } from '@angular/core';
 import { createClient, SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+// --- Interfaces ---
+export interface ParkingSpot {
+  id: number;
+  spot_name: string;
+  status: 'available' | 'reserved' | 'occupied';
+}
 
 export interface Message {
   id?: number;
@@ -14,22 +22,75 @@ export interface Message {
 @Injectable({
   providedIn: 'root',
 })
-export class SupabaseService {
+export class SupabaseService implements OnDestroy {
   private supabase: SupabaseClient;
-  private messagesSubject = new BehaviorSubject<Message[]>([]);
-  private channel!: RealtimeChannel; // เพิ่มตัวแปรสำหรับ channel
 
-  messages$ = this.messagesSubject.asObservable();
+  // --- State for Parking Lot ---
+  private spotsSubject = new BehaviorSubject<ParkingSpot[]>([]);
+  private parkingChannel!: RealtimeChannel;
+  spots$: Observable<ParkingSpot[]> = this.spotsSubject.asObservable();
+
+  // --- State for Chat ---
+  private messagesSubject = new BehaviorSubject<Message[]>([]);
+  private chatChannel!: RealtimeChannel;
+  messages$: Observable<Message[]> = this.messagesSubject.asObservable();
 
   constructor() {
     this.supabase = createClient(
       environment.supabaseUrl,
       environment.supabaseKey
     );
-    this.listenToMessages(); // เรียกฟังก์ชันเพื่อเริ่มดักฟัง
+
+    console.log('Supabase service initialized. Setting up listeners...');
+    this.listenToParkingChanges();
+    this.listenToMessages();
   }
 
-  // ดึงข้อความทั้งหมดตอนเริ่มต้น
+  // --- Parking Lot Functionality ---
+
+  /**
+   * ดึงข้อมูลสถานะที่จอดรถทั้งหมดล่าสุด
+   */
+  async fetchSpots() {
+    const { data, error } = await this.supabase
+      .from('parking_spots')
+      .select('*')
+      .order('spot_name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching parking spots:', error);
+    } else {
+      this.spotsSubject.next(data as ParkingSpot[]);
+    }
+  }
+
+  /**
+   * ตั้งค่าการดักฟังการเปลี่ยนแปลงของตาราง parking_spots
+   */
+  private listenToParkingChanges() {
+    this.parkingChannel = this.supabase
+      .channel('parking-updates')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'parking_spots' }, // ดักฟังทุก event (INSERT, UPDATE, DELETE)
+        (payload) => {
+          console.log('Parking spot change received!', payload);
+          this.fetchSpots(); // เมื่อมีการเปลี่ยนแปลง ให้ดึงข้อมูลทั้งหมดมาใหม่
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to parking updates!');
+        }
+      });
+  }
+
+
+  // --- Chat Functionality ---
+
+  /**
+   * ดึงข้อความแชททั้งหมดตอนเริ่มต้น
+   */
   async fetchMessages() {
     const { data, error } = await this.supabase
       .from('messages')
@@ -43,7 +104,9 @@ export class SupabaseService {
     }
   }
 
-  // ส่งข้อความใหม่
+  /**
+   * ส่งข้อความใหม่
+   */
   async sendMessage(message: Message) {
     const { error } = await this.supabase.from('messages').insert([message]);
     if (error) {
@@ -51,36 +114,46 @@ export class SupabaseService {
     }
   }
 
-  // *** ส่วนที่แก้ไขและเพิ่มเติม ***
-  // ฟังการเปลี่ยนแปลง (Real-time)
+  /**
+   * ตั้งค่าการดักฟังข้อความใหม่ในตาราง messages
+   */
   private listenToMessages() {
-    // ใช้ชื่อ channel ที่ไม่ซ้ำใคร
-    this.channel = this.supabase
+    this.chatChannel = this.supabase
       .channel('chat-room-public')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
+        { event: 'INSERT', schema: 'public', table: 'messages' }, // ดักฟังเฉพาะข้อความใหม่ (INSERT)
         (payload) => {
-          console.log('New message received!', payload); // Log เมื่อมีข้อความใหม่เข้ามา
+          console.log('New message received!', payload);
           const newMessage = payload.new as Message;
           const currentMessages = this.messagesSubject.getValue();
           this.messagesSubject.next([...currentMessages, newMessage]);
         }
       )
       .subscribe((status) => {
-        // เพิ่มส่วนตรวจสอบสถานะการเชื่อมต่อ
         if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to the real-time channel!');
-        } else {
-          console.log('Real-time subscription status:', status);
+          console.log('Successfully subscribed to chat room!');
         }
       });
   }
 
-  // (Optional) เพิ่มฟังก์ชันสำหรับยกเลิกการเชื่อมต่อเมื่อไม่ใช้งาน
-  unsubscribe() {
-    if (this.channel) {
-      this.supabase.removeChannel(this.channel);
+
+  // --- Lifecycle & Cleanup ---
+
+  /**
+   * ยกเลิกการเชื่อมต่อ Real-time ทั้งหมด
+   */
+  unsubscribeAll() {
+    if (this.parkingChannel) {
+      this.supabase.removeChannel(this.parkingChannel);
     }
+    if (this.chatChannel) {
+      this.supabase.removeChannel(this.chatChannel);
+    }
+    console.log('Unsubscribed from all real-time channels.');
+  }
+
+  ngOnDestroy() {
+    this.unsubscribeAll();
   }
 }

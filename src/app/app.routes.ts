@@ -19,7 +19,11 @@ export const routes: Routes = [
   {
     path: 'chat-page',
     loadComponent: () => import('./pages/chat-page/chat-page.page').then( m => m.ChatComponent)
+  },  {
+    path: 'slot',
+    loadComponent: () => import('./pages/parking/slot/slot.page').then( m => m.SlotPage)
   },
+
 
 
   

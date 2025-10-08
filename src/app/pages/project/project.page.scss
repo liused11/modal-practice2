@@ -1,0 +1,20 @@
+/* src/app/pages/slot/slot.page.scss */
+ion-card {
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+}
+
+ion-card-title {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.available-card {
+  --background: var(--ion-color-success);
+  color: #fff;
+}
+
+.reserved-card {
+  --background: var(--ion-color-danger);
+  color: #fff;
+}
