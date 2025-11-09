@@ -1,24 +1,20 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>
-      Parking Status
-    </ion-title>
+    <ion-title>สถานะที่จอดรถ</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <ion-grid>
     <ion-row>
-      <ion-col size="6" *ngFor="let spot of parkingSpots$ | async">
-        <ion-card [ngClass]="{
-          'available': spot.status === 'available',
-          'reserved': spot.status === 'reserved'
-        }">
+      <ion-col size="6" *ngFor="let spot of parkingSpots">
+        <ion-card [color]="getSpotColor(spot)">
           <ion-card-header>
-            <ion-card-title>{{ spot.spot_name }}</ion-card-title>
+            <ion-card-title>{{ spot.id }}</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            {{ spot.status | uppercase }}
+            ประเภท: {{ spot.type }} <br />
+            สถานะ: {{ spot.statusText }}
           </ion-card-content>
         </ion-card>
       </ion-col>

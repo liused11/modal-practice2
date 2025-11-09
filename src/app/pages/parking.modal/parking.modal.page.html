@@ -1,0 +1,194 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="bg-white shadow-sm">
+    <ion-title class="flex items-center justify-center gap-2">
+      <span class="text-lg font-semibold text-blue-600">FASTPASS</span>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="bg-gray-50">
+  <div class="bg-white px-4 py-3 shadow-sm flex items-center gap-2">
+    <ion-searchbar
+      [(ngModel)]="searchQuery"
+      placeholder="ไปที่ไหน?"
+      (ionChange)="onSearch()"
+      class="flex-1 !p-0">
+    </ion-searchbar>
+
+    <ion-button fill="clear" class="text-red-500 text-xl">
+      🔔
+    </ion-button>
+  </div>
+
+  <div class="bg-white px-4 py-3 flex gap-2 overflow-x-auto">
+    <ion-chip
+      [outline]="selectedFilter !== 'car'"
+      [color]="selectedFilter === 'car' ? 'primary' : 'medium'"
+      (click)="selectFilter('car')"
+      class="flex items-center gap-5">
+      <ion-label>ที่จอดรถ</ion-label>
+    </ion-chip>
+    <ion-chip
+      [outline]="selectedFilter !== 'visitor'"
+      [color]="selectedFilter === 'visitor' ? 'primary' : 'medium'"
+      (click)="selectFilter('visitor')"
+      class="flex items-center gap-5">
+      <ion-label>อาคารผู้เยี่ยมชม</ion-label>
+    </ion-chip>
+  </div>
+
+  <div class="relative h-full bg-gradient-to-br from-indigo-500 to-purple-600 overflow-hidden">
+    <div class="absolute inset-0 map-grid"></div>
+    
+    <div *ngFor="let lot of visibleParkingLots"
+        class="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer animate-pulse"
+        [style.top.px]="lot.mapY"
+        [style.left.px]="lot.mapX"
+        (click)="viewLotDetails(lot)">
+      <div [ngClass]="getMarkerColorClass(lot.available, lot.capacity)"
+          class="text-white px-3 py-1.5 rounded-full font-bold text-xs shadow-lg text-center min-w-[60px]">
+        <div class="text-sm">
+          {{ lot.available !== null ? (lot.available + '/' + lot.capacity) : 'เต็ม' }}
+        </div>
+        <div class="text-[10px] opacity-95">ว่าง</div>
+      </div>
+    </div>
+  </div>
+
+  </ion-content>
+
+<ion-footer class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl z-50">
+  <ion-toolbar class="bg-white">
+    <div class="flex justify-around py-2">
+      <ion-button fill="clear" size="small" (click)="navigateTo('search')" [class.text-blue-600]="activeNav === 'search'" [class.text-gray-500]="activeNav !== 'search'" class="flex flex-col items-center gap-1">
+
+        <ion-label class="text-[11px]">ค้าหา</ion-label>
+      </ion-button>
+      <ion-button fill="clear" size="small" (click)="navigateTo('bookings')" [class.text-blue-600]="activeNav === 'bookings'" [class.text-gray-500]="activeNav !== 'bookings'" class="flex flex-col items-center gap-1">
+ 
+        <ion-label class="text-[11px]">การจอง</ion-label>
+      </ion-button>
+      <ion-button fill="clear" size="small" (click)="navigateTo('saved')" [class.text-blue-600]="activeNav === 'saved'" [class.text-gray-500]="activeNav !== 'saved'" class="flex flex-col items-center gap-1">
+      
+        <ion-label class="text-[11px]">บันทึกแล้ว</ion-label>
+      </ion-button>
+      <ion-button fill="clear" size="small" (click)="navigateTo('nearby')" [class.text-blue-600]="activeNav === 'nearby'" [class.text-gray-500]="activeNav !== 'nearby'" class="flex flex-col items-center gap-1">
+
+        <ion-label class="text-[11px]">ล่าสุด</ion-label>
+      </ion-button>
+      <ion-button fill="clear" size="small" (click)="navigateTo('profile')" [class.text-blue-600]="activeNav === 'profile'" [class.text-gray-500]="activeNav !== 'profile'" class="flex flex-col items-center gap-1">
+
+        <ion-label class="text-[11px]">โปรไฟล์</ion-label>
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>
+
+
+<ion-modal
+  [isOpen]="true"
+  [canDismiss]="false"
+  [initialBreakpoint]="0.5"
+  [breakpoints]="[0.2, 0.5, 0.9]"
+  [backdropDismiss]="false"
+  [cssClass]="'persistent-sheet-modal'"
+>
+  <ng-template>
+    <ion-content>
+      <div class="bg-white rounded-t-3xl">
+        
+        <div class="flex justify-center py-3 cursor-grab">
+          
+        </div>
+
+        <ion-segment [(ngModel)]="selectedTab" mode="md" (ionChange)="onTabChange()">
+          <ion-segment-button value="normal" class="text-sm">
+            <ion-label>รถยนต์</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="ev" class="text-sm">
+            <ion-label>รถยนต์ EV</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="motorcycle" class="text-sm">
+            <ion-label>รถจักรยานยนต์</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+
+        <div class="px-4 py-3 flex gap-2 overflow-x-auto">
+          <ion-button size="small" class="whitespace-nowrap">
+            <span>⇅</span> เรียงตาม <span>▼</span>
+          </ion-button>
+          <ion-button size="small" fill="outline" class="whitespace-nowrap">
+            เปิดอยู่
+          </ion-button>
+          <ion-button size="small" fill="outline" class="whitespace-nowrap">
+            สถานที่ใกล้
+          </ion-button>
+          <ion-button size="small" fill="outline" class="whitespace-nowrap">
+            สถานที่ที่ติดดาว
+          </ion-button>
+        </div>
+
+        <div class="px-4 space-y-3 pb-24">
+          <ion-card *ngFor="let lot of filteredParkingLots"
+                    button
+                    (click)="viewLotDetails(lot)"
+                    [class.opacity-60]="lot.status === 'full'"
+                    class="m-0 mb-3 rounded-xl shadow-md hover:shadow-lg transition-all">
+            <ion-card-content class="p-4">
+              <div class="flex gap-4">
+                <div [ngClass]="getStatusColorClass(lot.status)"
+                    class="w-12 h-12 rounded-lg flex items-center justify-center font-bold text-[11px] flex-shrink-0">
+                  <div style="writing-mode: vertical-rl; text-orientation: upright; letter-spacing: -2px;">
+                    {{ getStatusText(lot.status) }}
+                  </div>
+                </div>
+
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <h3 class="font-semibold text-gray-900 text-base">{{ lot.name }}</h3>
+
+                  </div>
+                  <div class="space-y-1 text-sm text-gray-600">
+                    <div class="flex items-center gap-2">
+  
+                      <span class="font-semibold text-gray-900">
+                        <span class="text-lg text-blue-600 font-bold">
+                          {{ lot.available !== null ? lot.available : '-' }}
+                        </span>
+                        <span class="text-gray-400">/{{ lot.capacity }}</span>
+                      </span>
+                      <span class="text-xs ml-2">รองรับ {{ lot.distance }} ม.</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+ 
+                      <span class="text-xs">{{ lot.hours }}</span>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+              
+                      <ion-badge *ngIf="lot.hasEVCharger" color="light" class="text-[11px]">
+                        มีที่ชาร์จ EV
+                      </ion-badge>
+                      <span class="text-xs">{{ lot.userTypes }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+ 
+                      <span class="text-xs">รองรับผู้มาติดต่อมหาวิทยาลัย</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="text-right pl-4 border-l border-gray-200 flex flex-col justify-center">
+                  <div class="flex items-center gap-1 text-lg font-bold text-blue-600 mb-1">
+  
+                    <span>฿{{ lot.price }}</span>
+                  </div>
+                  <div class="text-[11px] text-gray-400">{{ lot.priceUnit }}</div>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

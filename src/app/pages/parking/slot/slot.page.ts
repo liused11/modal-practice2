@@ -1,12 +1,9 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { IonicModule } from "@ionic/angular"; // ทั้งหมดจำๆ
-import { Observable } from "rxjs";
-import {
-  ParkingSpot,
-  SupabaseService,
-} from "../../../services/supabase.service";
+import { IonicModule } from "@ionic/angular";
+import { Subscription } from "rxjs";
+import { SupabaseService, ParkingSpot } from "../../../services/supabase.service";
 
 @Component({
   selector: "app-slot",
@@ -15,16 +12,50 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule, IonicModule],
 })
-export class SlotPage implements OnInit {
-  parkingSpots$!: Observable<ParkingSpot[]>;
+export class SlotPage implements OnInit, OnDestroy {
+  parkingSpots: any[] = [];
+  private sub!: Subscription;
 
   constructor(private supabaseService: SupabaseService) {}
 
-  ngOnInit() {
-    // 1. รับ Observable จาก property `spots$` โดยตรง
-    this.parkingSpots$ = this.supabaseService.spots$;
+  async ngOnInit() {
+    // โหลดข้อมูลเริ่มต้น
+    await this.supabaseService.fetchSpots();
 
-    // 2. เรียกใช้ `fetchSpots()` เพื่อดึงข้อมูลครั้งแรก
-    this.supabaseService.fetchSpots();
+    // ✅ Subscribe เพื่ออัปเดตแบบ Realtime
+    this.sub = this.supabaseService.spots$.subscribe((spots) => {
+      this.parkingSpots = spots.map((s) => ({
+        ...s,
+        isLocked: this.isSpotLocked(s),
+        statusText: this.getStatusText(s),
+      }));
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.sub) this.sub.unsubscribe();
+  }
+
+  // --- Logic เดิม ---
+  isSpotLocked(spot: any): boolean {
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const hour = now.getHours();
+    const isWeekday = day >= 1 && day <= 6;
+    const isLockedTime = hour >= 0 && hour < 24; // ✅ เที่ยงคืน - 6 โมงเช้า
+
+    if (spot.type === "teacher" && isWeekday && isLockedTime) {
+      return true;
+    }
+    return false;
+  }
+
+  getStatusText(spot: any): string {
+    if (this.isSpotLocked(spot)) return "ล็อก (00.00 - 06.00)";
+    return "ว่าง";
+  }
+
+  getSpotColor(spot: any): string {
+    return this.isSpotLocked(spot) ? "danger" : "success";
   }
 }

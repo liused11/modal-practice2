@@ -1,0 +1,9 @@
+/* ใส่ที่ท้ายไฟล์ global.scss */
+
+.persistent-sheet-modal {
+  --backdrop-opacity: 0;
+}
+
+.persistent-sheet-modal .modal-wrapper {
+  --background: transparent;
+}

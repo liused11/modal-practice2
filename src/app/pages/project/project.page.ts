@@ -44,7 +44,9 @@ export class ProjectPage implements OnInit {
     this.modalService.openModal('login', true, { from: 'HomePage' });
   }
 
-  
+  parkingmodal() {
+    this.router.navigate(['/parkingmodal'])
+  }
   pagepark() {
     this.router.navigate(['/slot']);
   }

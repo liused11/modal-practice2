@@ -1,3 +1,30 @@
 // For information on how to create your own theme, please see:
 // http://ionicframework.com/docs/theming/
 
+app-root {
+  display: block; 
+  
+  /* เปลี่ยนตรงนี้เป็นขนาด iPhone ที่คุณต้องการ */
+  max-width: 390px;  /* ขนาดของ iPhone 12/13/14 Pro */
+  
+  /* ทำให้มันอยู่ตรงกลางจอ PC */
+  margin: 0 auto;  
+  
+  /* ใส่เงาให้เหมือนเป็นกรอบแอป (ใส่หรือไม่ก็ได้) */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  /* แนะนำให้ใส่ min-height เพื่อให้แอป
+    มีความสูงเต็มจอในมือถือจริง 
+  */
+  min-height: 100vh; /* 100vh = ความสูงเต็มหน้าจอ */
+
+  /* อาจจะใส่สีพื้นหลังให้ส่วนที่อยู่นอกกรอบ */
+  /* (อันนี้ต้องไปใส่ที่ body แทน) */
+}
+
+/* เพื่อให้สวยขึ้น: 
+  กำหนดสีพื้นหลังให้ body (พื้นที่ว่างซ้าย-ขวาบน PC) 
+*/
+body {
+  background-color: #f0f2f5; /* สีเทาอ่อนๆ */
+}
