@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { IonicModule, ModalController } from "@ionic/angular";
+import { ParkingLotDetailComponent } from "src/app/components/parking-lot-detail/parking-lot-detail.component";
 
 export interface ParkingLot {
   id: string;
@@ -30,6 +31,8 @@ export interface ParkingLot {
     IonicModule,
     CommonModule,
     FormsModule,
+    ParkingLotDetailComponent
+,
   ],
 })
 export class ParkingModalPage implements OnInit {
@@ -175,12 +178,22 @@ export class ParkingModalPage implements OnInit {
 
   async viewLotDetails(lot: ParkingLot) {
     console.log("View details for:", lot.name);
-    // ในอนาคต คุณสามารถเปิด Modal หน้ารายละเอียดได้ที่นี่
-    // const modal = await this.modalCtrl.create({
-    //   component: ParkingDetailPage, // สร้างหน้ารายละเอียด
-    //   componentProps: { lotId: lot.id }
-    // });
-    // await modal.present();
+
+    // 1. สร้าง Modal ใหม่
+    const modal = await this.modalCtrl.create({
+      component: ParkingLotDetailComponent, // 👈 ใช้ Component ใหม่
+      componentProps: {
+        lot: lot, // 👈 ส่งข้อมูล 'lot' ทั้งก้อนเข้าไป
+      },
+      // 2. ทำให้เป็น Bottom Sheet แบบ Google Maps
+      initialBreakpoint: 0.5,    // 👈 เริ่มต้นที่ครึ่งจอ
+      breakpoints: [0, 0.5, 0.9], // 👈 สามารถย่อสุด, ครึ่งจอ, เกือบเต็มจอ
+      backdropDismiss: true,     // 👈 แตะพื้นหลังเพื่อปิด
+      cssClass: 'detail-sheet-modal' // 👈 (Optional) เผื่ออยากแต่ง CSS เพิ่ม
+    });
+
+    // 3. แสดง Modal
+    await modal.present();
   }
 
   toggleSheet() {
@@ -240,4 +253,6 @@ export class ParkingModalPage implements OnInit {
         return "ไม่ทราบ";
     }
   }
+
+  
 }

@@ -4,7 +4,7 @@ import { LoginPage } from './pages/login/login.page';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'portal/login',
+    redirectTo: 'parking',
     pathMatch: 'full',
   },
   {

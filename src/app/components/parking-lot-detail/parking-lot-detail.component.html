@@ -1,0 +1,72 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ lot.name }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="ion-padding">
+
+    <div class="bg-gray-200 h-40 rounded-lg mb-4 flex items-center justify-center">
+      <ion-icon name="image-outline" class="text-4xl text-gray-400"></ion-icon>
+      </div>
+
+    <div class="flex items-center gap-4 mb-4">
+      <div class="flex-1">
+        <h1 class="text-xl font-bold text-gray-900">{{ lot.name }}</h1>
+        <p classclass="text-sm text-gray-500">ห่างออกไป {{ lot.distance }} ม.</p>
+      </div>
+      <div class="text-right">
+        <div [class]="getStatusColorClass(lot.status)" class="text-lg font-bold">
+          {{ getStatusText(lot.status) }}
+        </div>
+        <div class="text-sm text-gray-700">
+          <span class="font-bold text-lg">
+            {{ lot.available !== null ? lot.available : '-' }}
+          </span>
+          <span class="text-gray-400">/{{ lot.capacity }}</span>
+        </div>
+      </div>
+    </div>
+
+    <ion-list [inset]="true" lines="full">
+      
+      <ion-item>
+        <ion-icon name="time-outline" slot="start" class="text-gray-500"></ion-icon>
+        <ion-label>
+          <h3 class="font-semibold">{{ lot.hours }}</h3>
+          <p>เวลาทำการ</p>
+          </ion-label>
+      </ion-item>
+
+      <ion-item>
+        <ion-icon name="cash-outline" slot="start" class="text-gray-500"></ion-icon>
+        <ion-label>
+          <h3 class="font-semibold">฿{{ lot.price }}</h3>
+          <p>{{ lot.priceUnit }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item>
+        <ion-icon name="people-outline" slot="start" class="text-gray-500"></ion-icon>
+        <ion-label>
+          <h3 class="font-semibold">{{ lot.userTypes }}</h3>
+          <p>สำหรับ</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item *ngIf="lot.hasEVCharger">
+        <ion-icon name="flash-outline" slot="start" class="text-green-500"></ion-icon>
+        <ion-label>
+          <h3 class="font-semibold text-green-600">มีที่ชาร์จ EV</h3>
+        </ion-label>
+      </ion-item>
+
+    </ion-list>
+  </div>
+</ion-content>
